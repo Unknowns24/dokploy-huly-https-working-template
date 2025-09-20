@@ -192,6 +192,7 @@ services:
             - GMAIL_URL=https://${HOST_ADDRESS}/_gmail
             - TELEGRAM_URL=https://${HOST_ADDRESS}/_telegram
             - STATS_URL=https://${HOST_ADDRESS}/_stats
+            - GITHUB_URL=https://${HOST_ADDRESS}/_github
             - UPLOAD_URL=/files
             - ELASTIC_URL=http://elastic:9200
             - COLLABORATOR_URL=wss://${HOST_ADDRESS}/_collaborator
@@ -202,6 +203,8 @@ services:
             - DESKTOP_UPDATES_CHANNEL=${HULY_VERSION}
             - LIVEKIT_WS=${LIVEKIT_HOST}
             - DISABLE_SIGNUP=${DISABLE_SIGNUP:-false}
+            - GITHUB_APP=${GITHUB_APP}
+            - GITHUB_CLIENTID=${GITHUB_APP_CLIENT_ID}
         restart: unless-stopped
         networks:
             - huly-net
@@ -272,6 +275,30 @@ services:
         restart: unless-stopped
         networks:
             - huly-net
+
+    github:
+        image: hardcoreeng/github:${HULY_VERSION}
+        container_name: huly-github
+        environment:          
+          - SERVER_SECRET=${SECRET}
+          - FRONT_URL=https://${HOST_ADDRESS}
+          - ACCOUNTS_URL=http://account:3000
+          - APP_ID=${GITHUB_APP_ID}                
+          - CLIENT_ID=${GITHUB_APP_CLIENT_ID}      
+          - CLIENT_SECRET=${GITHUB_APP_CLIENT_SECRET}
+          - COLLABORATOR_URL=ws://collaborator:3078
+          - PRIVATE_KEY=${GITHUB_APP_PRIVATE_KEY}
+          - WEBHOOK_SECRET=${GITHUB_APP_WEBHOOK_SECRET}
+          - MINIO_ENDPOINT=http://minio:9000 # interno (nombre de servicio)
+          - MINIO_ACCESS_KEY=${MINIO_ROOT_USER}
+          - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+          - MINIO_BUCKET=huly-github # el bucket que quieras usar
+          - MINIO_REGION=us-east-1 # cualquiera; MinIO lo ignora pero muchas libs lo piden
+          - MINIO_USE_SSL=false # true solo si exponés MinIO con TLS directo
+          - MINIO_PUBLIC_URL=https://${HOST_ADDRESS}/files # URL pública vía Nginx (/files)
+        restart: unless-stopped
+        networks:
+          - huly-net
 
 volumes:
     elastic:
